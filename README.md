@@ -110,3 +110,5 @@
         ...
       ]
    ```
+## Flow Chart
+<img src="/flowchart.png">
