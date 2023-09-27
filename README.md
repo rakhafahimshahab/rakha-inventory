@@ -280,11 +280,254 @@ JSON has risen to prominence in contemporary web application data interchange du
 ### Screenshots
 1. main
 <img src ="/images/postman_main.png">
+
 2. xml
 <img src ="/images/postman_xml.png">
+
 3. json
 <img src ="/images/postman_json.png">
+
 4. xml1
 <img src ="/images/postman_xml1.png">
+
 5. json1
 <img src ="/images/postman_json1.png">
+
+# Assignment 4
+## Questions
+### 1. What is UserCreationForm in Django?
+UserCreationForm is a form provided by Django's built-in authentication framework. It's designed to simplify the creation of new user instances. Its advantages include rapid development due to pre-implemented fields and methods, built-in security measures for password handling, and automatic validation for fields like usernames. However, it has disadvantages such as limited default fields, potentially necessitating extensions for complex registration processes, and possible future challenges if migrating away from Django's built-in authentication.
+### 2. What is the difference between authentication and authorization in Django application? Why are both important?
+Authentication: This refers to the process of verifying the identity of a user. In a Django application, authentication checks whether a user is who they claim to be, typically through a username and password combination. Django's built-in django.contrib.auth system provides tools for user authentication.
+
+Authorization: Once a user's identity is verified, authorization determines what that user is allowed to do. In Django, this means defining permissions that dictate what actions a user (or a group of users) can perform on specific objects or models. For example, a user might be authorized to view a post but not edit or delete it.
+
+Importance:
+Both are crucial for ensuring the security and proper functioning of a Django application. Authentication prevents unauthorized access by ensuring only registered and validated users can log in. Authorization, on the other hand, ensures that once logged in, users can only perform actions they're permitted to, protecting data and functionality from unintended access or modification.
+### 3. What are cookies in website? How does Django use cookies to manage user session data?
+In Django, cookies play a pivotal role in session management. By default, a cookie stores only a session ID, allowing the server to identify and maintain a user's session across requests by referencing the actual session data kept securely in the database. However, Django can also be configured to store the entire session data directly within the cookie, encrypting it for safety. While this direct storage can be more efficient in some cases, it comes with size constraints and potential security considerations. In essence, Django's use of cookies balances between efficiency and security in managing user sessions.
+### 4. Are cookies secure to use? Is there potential risk to be aware of?
+Cookies, integral to web technologies, present both utility and potential security vulnerabilities. When transmitted over unencrypted connections, they risk interception, especially if they contain sensitive data. Websites susceptible to Cross-site Scripting (XSS) can inadvertently expose cookies to theft. Reliance solely on cookies without additional safeguards can also open doors to Cross-site Request Forgery (CSRF) attacks. Session hijacking is another concern, where an attacker, after obtaining a user's session cookie, can achieve unauthorized account access.
+
+There are also concerns about third-party cookies, often used by advertisers, which can track users across multiple sites, raising privacy issues. However, several mitigation strategies exist. Enforcing encrypted HTTPS connections, using the HttpOnly flag to prevent JavaScript access, setting the Secure flag to ensure cookies transmit only over HTTPS, and employing the SameSite attribute all enhance cookie security. Moreover, setting short expiration times and consistently sanitizing user inputs further bolster security. In essence, while cookies are invaluable, their careful management is paramount for maintaining both functionality and security.
+## Steps
+1. add login,logout and register function to views.py
+   ```
+   from django.shortcuts import render
+   import datetime
+   from django.http import HttpResponseRedirect
+   from django.urls import reverse
+   from main.forms import ProductForm
+   from main.models import Product
+   from django.http import HttpResponse
+   from django.core import serializers
+   from django.shortcuts import redirect
+   from django.contrib.auth.forms import UserCreationForm
+   from django.contrib import messages
+   from django.contrib.auth import authenticate, login,logout
+   from django.contrib.auth.decorators import login_required
+
+   @login_required(login_url='/login')
+   def show_main(request):
+      products = Product.objects.filter(user=request.user)
+
+      context = {
+         'application_name': "Pirates Database",
+         'name': request.user.username, # Your name
+         'class': 'PBP KI', # Your PBP Class
+         'products': products,
+         'last_login': request.COOKIES['last_login'],
+      }
+
+      return render(request, "main.html", context)
+
+   def create_product(request):
+      form = ProductForm(request.POST or None)
+
+      if form.is_valid() and request.method == "POST":
+         product = form.save(commit=False)
+         product.user = request.user
+         product.save()
+         return HttpResponseRedirect(reverse('main:show_main'))
+      context = {'form': form}
+      return render(request, "create_product.html", context)
+
+   def show_xml(request):
+      data = Product.objects.all()
+      return HttpResponse(serializers.serialize("xml", data), content_type="application/xml")
+
+   def show_json(request):
+      data = Product.objects.all()
+      return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+   def show_xml_by_id(request, id):
+      data = Product.objects.filter(pk=id)
+      return HttpResponse(serializers.serialize("xml", data), content_type="application/xml")
+
+   def show_json_by_id(request, id):
+      data = Product.objects.filter(pk=id)
+      return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+   def register(request):
+      form = UserCreationForm()
+
+      if request.method == "POST":
+         form = UserCreationForm(request.POST)
+         if form.is_valid():
+               form.save()
+               messages.success(request, 'Your account has been successfully created!')
+               return redirect('main:login')
+      context = {'form':form}
+      return render(request, 'register.html', context)
+
+   def login_user(request):
+      if request.method == 'POST':
+         username = request.POST.get('username')
+         password = request.POST.get('password')
+         user = authenticate(request, username=username, password=password)
+         if user is not None:
+               login(request, user)
+               response = HttpResponseRedirect(reverse("main:show_main")) 
+               response.set_cookie('last_login', str(datetime.datetime.now()))
+               return response
+         else:
+               messages.info(request, 'Sorry, incorrect username or password. Please try again.')
+      context = {}
+      return render(request, 'login.html', context)
+
+   def logout_user(request):
+      logout(request)
+      response = HttpResponseRedirect(reverse('main:login'))
+      response.delete_cookie('last_login')
+      return response
+
+   ```
+2. create new html file for login page
+   ```
+   {% extends 'base.html' %}
+
+   {% block meta %}
+      <title>Login</title>
+   {% endblock meta %}
+
+   {% block content %}
+
+   <div class = "login">
+
+      <h1>Login</h1>
+
+      <form method="POST" action="">
+         {% csrf_token %}
+         <table>
+               <tr>
+                  <td>Username: </td>
+                  <td><input type="text" name="username" placeholder="Username" class="form-control"></td>
+               </tr>
+                     
+               <tr>
+                  <td>Password: </td>
+                  <td><input type="password" name="password" placeholder="Password" class="form-control"></td>
+               </tr>
+
+               <tr>
+                  <td></td>
+                  <td><input class="btn login_btn" type="submit" value="Login"></td>
+               </tr>
+         </table>
+      </form>
+
+      {% if messages %}
+         <ul>
+               {% for message in messages %}
+                  <li>{{ message }}</li>
+               {% endfor %}
+         </ul>
+      {% endif %}     
+         
+      Don't have an account yet? <a href="{% url 'main:register' %}">Register Now</a>
+
+   </div>
+
+   {% endblock content %}
+
+   ```
+3. create new html file for register page
+   ```
+   {% extends 'base.html' %}
+
+   {% block meta %}
+      <title>Register</title>
+   {% endblock meta %}
+
+   {% block content %}  
+
+   <div class = "login">
+      
+      <h1>Register</h1>  
+
+         <form method="POST" >  
+               {% csrf_token %}  
+               <table>  
+                  {{ form.as_table }}  
+                  <tr>  
+                     <td></td>
+                     <td><input type="submit" name="submit" value="Daftar"/></td>  
+                  </tr>  
+               </table>  
+         </form>
+
+      {% if messages %}  
+         <ul>   
+               {% for message in messages %}  
+                  <li>{{ message }}</li>  
+                  {% endfor %}  
+         </ul>   
+      {% endif %}
+
+   </div>  
+
+   {% endblock content %}
+
+   ```
+4. add logout button in main.html
+   ```
+   ...
+   <br />
+
+   <h5>Last login session: {{ last_login }}</h5>
+   ...
+
+   ```
+5. add new url to login.html and register.html
+   ```
+   from django.urls import path
+   from main.views import show_main, create_product, show_xml, show_json, show_xml_by_id, show_json_by_id,register,login_user,logout_user
+
+   app_name = 'main'
+
+   urlpatterns = [
+      path('', show_main, name='show_main'),
+      path('create-product', create_product, name='create_product'),
+      path('xml/', show_xml, name='show_xml'),
+      path('json/', show_json, name='show_json'),
+      path('xml/<int:id>/', show_xml_by_id, name='show_xml_by_id'),
+      path('json/<int:id>/', show_json_by_id, name='show_json_by_id'),
+      path('register/', register, name='register'),
+      path('login/', login_user, name='login'),
+      path('logout/', logout_user, name='logout'),
+   ]
+
+   ```
+6. change models.py to connect product to user
+   ```
+   from django.db import models
+   from django.contrib.auth.models import User
+
+   class Product(models.Model):
+      user = models.ForeignKey(User, on_delete=models.CASCADE)
+      name = models.CharField(max_length=255)
+      category = models.CharField(max_length=255)
+      amount = models.IntegerField()
+      description = models.TextField()
+
+   ```
