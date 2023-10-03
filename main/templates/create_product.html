@@ -1,19 +1,29 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 
 {% block content %}
-<h1>Add New Product</h1>
+<style>
+    .card {
+        background-color: #17252a; 
+        color : #feffff;
+        margin-top: 100px;
+        width: 600px
+    }
+    .btn-custom{
+        background-color: #2b7a78;
+        color: #feffff;
+    }
+</style>
+<div class="card mx-auto" style="max-width: 400px;">
+    <div class="card-body">
+        <h1 class="card-title" style="text-align: center;">Add New Product</h1>
 
-<form method="POST">
-    {% csrf_token %}
-    <table>
-        {{ form.as_table }}
-        <tr>
-            <td></td>
-            <td>
-                <input type="submit" value="Add Product"/>
-            </td>
-        </tr>
-    </table>
-</form>
-
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="text-center mt-3">
+                <input type="submit" value="Add Product" class="btn btn-custom">
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

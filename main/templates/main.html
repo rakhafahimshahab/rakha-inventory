@@ -1,48 +1,96 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Rakha's Inventory Page</h1>
+<style>
+    .custom-navbar-color {
+        background-color: #17252a;
+        color : #feffff;
+        margin-bottom: 40px
+    }
+    .card {
+        background-color: #17252a; 
+        color : #feffff;
+    }
+    .card div {
+        border-top: 1px solid #feffff; /* This adds a line at the top of each div */
+        padding-top: 10px; /* Optional: Adds some space between the content of the div and the border for better visual appeal */
+        margin-top: 10px; /* Optional: Adds some space between divs */
+    }
+    .card div:first-child {
+        border-top: none;
+    }
+    .btn-custom{
+        background-color: #2b7a78;
+        color: #feffff;
+    }
+</style>
+
+<nav class="navbar navbar-expand-lg custom-navbar-color">
+    <div class="container-fluid">
+      <h3>Welcome back {{name}}!</h3>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent" style="text-align: right;">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li>
+                <a class="nav-link disabled" aria-disabled="true" style="color: #faffff;">Class:{{class}}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link disabled" aria-disabled="true" style="color: #faffff;">Last login session: {{last_login}}</a>
+              </li>
+        </ul>
+        </div>
+      <a class="navbar-brand custom-navbar-color" href="{% url 'main:logout' %}">Logout</a>
+    </button>
+    </div>
+</nav>
+<h1 style="text-align: center;">Rakha's Inventory Page</h1>
 
 <h5>Application Name:</h5>
 <p>{{ application_name }}</p>
 
-<h5>Name:</h5>
-<p>{{ name }}</p>
 
-<h5>Class:</h5>
-<p>{{ class }}</p>
+{% comment %} Below is how to show the product data {% endcomment %}
 
-<table>
-    <tr>
-        <th>Name</th>
-        <th>Category</th>
-        <th>Amount</th>
-        <th>Description</th>
-    </tr>
-
-    {% comment %} Below is how to show the product data {% endcomment %}
-
+<div class="row">
     {% for product in products %}
-        <tr>
-            <td>{{product.name}}</td>
-            <td>{{product.category}}</td>
-            <td>{{product.amount}}</td>
-            <td>{{product.description}}</td>
-        </tr>
+        <div class="col-md-4 mb-3" >
+            <div class="card" style="width: 300px;">
+                <div class="card-body">
+                    <h5 class="card-title">Name</h5>
+                    <p class="card-text">{{product.name}}</p>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Category</h5>
+                    <p class="card-text">{{product.category}}</p>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Amount</h5>
+                    <p class="card-text">{{product.amount}}</p>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">{{product.description}}</p>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'main:edit_product' product.pk %}">
+                        <button class="btn btn-custom btn-sm" type="submit">
+                            Edit
+                        </button>
+                    </a>
+                    <a href="{% url 'main:delete_product' product.pk %}">
+                        <button class="btn btn-custom btn-sm" type="submit">
+                            Delete
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
     {% endfor %}
-</table>
-
+</div>
 <br />
 
-<h5>Last login session: {{ last_login }}</h5>
-
 <a href="{% url 'main:create_product' %}">
-    <button>
+    <button class="btn btn-custom btn-lg">
         Add New Product
     </button>
 </a>
-<a href="{% url 'main:logout' %}">
-    <button>
-        Logout
-    </button>
-</a>
+
 {% endblock content %}

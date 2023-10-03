@@ -5,30 +5,41 @@
 {% endblock meta %}
 
 {% block content %}  
+<style>
+    .card {
+        background-color: #17252a; 
+        color : #feffff;
+        margin-top: 150px;
+        width: 600px
+    }
+    .btn-custom{
+        background-color: #2b7a78;
+        color: #feffff;
+    }
+</style>
+<div class="card mx-auto" style="width: 600px">
+    <div class="card-body">
+        <h1 class="card-title" style="text-align: center;margin-bottom: 50px;">Register</h1>
 
-<div class = "login">
-    
-    <h1>Register</h1>  
-
-        <form method="POST" >  
-            {% csrf_token %}  
-            <table>  
-                {{ form.as_table }}  
-                <tr>  
+        <form method="POST">
+            {% csrf_token %}
+            <table>
+                {{ form.as_table }}
+                <tr>
                     <td></td>
-                    <td><input type="submit" name="submit" value="Daftar"/></td>  
-                </tr>  
-            </table>  
+                    <td><input type="submit" name="submit" value="Daftar" class="btn btn-custom btn-sm"/></td>
+                </tr>
+            </table>
         </form>
 
-    {% if messages %}  
-        <ul>   
-            {% for message in messages %}  
-                <li>{{ message }}</li>  
-                {% endfor %}  
-        </ul>   
-    {% endif %}
-
-</div>  
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div> 
 
 {% endblock content %}

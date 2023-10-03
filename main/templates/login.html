@@ -5,41 +5,54 @@
 {% endblock meta %}
 
 {% block content %}
+<style>
+    .card {
+        background-color: #17252a; 
+        color : #feffff;
+        text-align: center;
+        margin-top: 150px;
+        width: 600px
+    }
+    .btn-custom{
+        background-color: #2b7a78;
+        color: #feffff;
+    }
+</style>
 
-<div class = "login">
+<div class="card mx-auto" style="width: 600px;">
+    <div class="card-body">
+        <h1 class="card-title">Login</h1>
 
-    <h1>Login</h1>
+        <form method="POST" action="">
+            {% csrf_token %}
+            <table class="mx-auto text-center">
+                <tr>
+                    <td>Username: </td>
+                    <td><input type="text" name="username" placeholder="Username" class="form-control"></td>
+                </tr>
+                        
+                <tr>
+                    <td>Password: </td>
+                    <td><input type="password" name="password" placeholder="Password" class="form-control"></td>
+                </tr>
 
-    <form method="POST" action="">
-        {% csrf_token %}
-        <table>
-            <tr>
-                <td>Username: </td>
-                <td><input type="text" name="username" placeholder="Username" class="form-control"></td>
-            </tr>
-                    
-            <tr>
-                <td>Password: </td>
-                <td><input type="password" name="password" placeholder="Password" class="form-control"></td>
-            </tr>
+                <tr>
+                    <td></td>
+                    <td><input class="btn login_btn btn-custom" type="submit" value="Login"></td>
+                </tr>
+            </table>
+        </form>
 
-            <tr>
-                <td></td>
-                <td><input class="btn login_btn" type="submit" value="Login"></td>
-            </tr>
-        </table>
-    </form>
-
-    {% if messages %}
+        {% if messages %}
         <ul>
             {% for message in messages %}
                 <li>{{ message }}</li>
             {% endfor %}
         </ul>
-    {% endif %}     
+        {% endif %}     
         
-    Don't have an account yet? <a href="{% url 'main:register' %}">Register Now</a>
-
+        Don't have an account yet? <a href="{% url 'main:register' %}">Register Now</a>
+    </div>
 </div>
 
 {% endblock content %}
