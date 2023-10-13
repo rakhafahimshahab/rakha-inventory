@@ -937,4 +937,231 @@ Tailwind CSS and Bootstrap are both popular CSS frameworks but have distinct phi
 
    {% endblock %}
    ```
+# Assignment 6
+## Questions
+### 1. Explain the difference between asynchronous programming and synchronous programming.
+- Synchronous Programming: In a synchronous programming model, tasks are executed sequentially. This means that one task must be completed before the next one starts. If a task is time-consuming, it will block the execution of the subsequent tasks until it is completed.
+- Asynchronous Programming: In an asynchronous model, tasks can start, run, and complete in overlapping time periods. It's particularly useful when tasks do not need to be executed sequentially or when tasks may have long wait times, such as I/O operations. This way, the system can move on to other tasks without waiting for the previous task to complete.
+### 2. In the implementation of JavaScript and AJAX, there is an implemented paradigm called the event-driven programming paradigm. Explain what this paradigm means and give one example of its implementation in this assignment.
+- Event-driven Programming: This is a programming paradigm in which the flow of the program is determined by events, such as user actions (e.g., mouse clicks or key presses), sensor outputs, or incoming messages. In JavaScript, event-driven programming is commonly used to handle user interactions with web pages.
+- Example: 
+   ```
+   document.getElementById("button_add").onclick = addProduct
+   ```
+### 3. Explain the implementation of asynchronous programming in AJAX.
+- AJAX (Asynchronous JavaScript And XML) is used to make asynchronous requests to the server without having to reload the whole page. The original idea behind AJAX was to fetch data from the server and update parts of a web page without refreshing the entire page.
+- An AJAX call typically involves creating a new XMLHttpRequest object, setting up a callback function to handle the response, and sending the request. When the server responds, the callback function is executed. With the advent of ES6 and Promises, AJAX has become more streamlined using the Fetch API.
+### 4. In this semester, the implementation of AJAX is done using the Fetch API rather than the jQuery library. Compare the two technologies and write down your opinion which technology is better to use.
+- Fetch API:
 
+   - Native to modern browsers.
+   - Returns Promises, making it easier to use with ES6 and async/await.
+   - More flexible and powerful than jQuery AJAX in terms of features.
+   - Doesn't require an external library.
+- jQuery AJAX:
+
+   - Part of the jQuery library, so you'll need to include the entire library even if you only want to use AJAX.
+   - Has a more simplified syntax, which might be easier for beginners.
+   - Provides compatibility with older browsers out of the box.
+   - Has a wider range of utilities and plugins due to its longevity and popularity.
+- Opinion: If you're already using jQuery in your project and need broad browser compatibility, it makes sense to use jQuery AJAX. However, if you're starting a new project or are focusing on modern browsers, the Fetch API is a more lightweight and powerful choice. With the direction web development is headed, leaning towards native browser APIs like Fetch makes future-proofing your code a bit easier.
+## Steps
+### 1. Create new function get_product_json in views.py and create the path in urls.py
+1. create add_product_ajax in views
+   ```
+   @csrf_exempt
+   def add_product_ajax(request):
+      if request.method == 'POST':
+         name = request.POST.get("name")
+         category = request.POST.get("category")
+         amount = request.POST.get("amount")
+         description = request.POST.get("description")
+         user = request.user
+
+         new_product = Product(name=name,category=category, amount=amount, description=description, user=user)
+         new_product.save()
+
+         return HttpResponse(b"CREATED", status=201)
+
+      return HttpResponseNotFound()
+   ```
+2. add the path to urls.py
+   ```
+   path('create-product-ajax/', add_product_ajax,name='add_product_ajax'),
+   ```
+### 2. Change main.html to implement ajax
+1. delete the initial table and create modal
+   ```
+   {% extends 'base.html' %}
+   {% block content %}
+   <style>
+      .cards-container {
+      display: flex;             /* Enables flexbox */
+      justify-content: center;   /* Centers content horizontally */
+      align-items: center;       /* Centers content vertically */
+      flex-wrap: wrap;           /* Allows flex items to wrap onto multiple lines */
+      }
+      .row {
+         width: 100%;               /* Ensures the row takes the full width of its container */
+         max-width: 1200px;         /* Optionally limit max width of the row for large screens */
+      }
+
+      .custom-navbar-color {
+         background-color: #17252a;
+         color : #feffff;
+         margin-bottom: 40px
+      }
+      .card {
+         background-color: #17252a; 
+         color : #feffff;
+      }
+      .card div {
+         border-top: 1px solid #feffff; /* This adds a line at the top of each div */
+         padding-top: 10px; /* Optional: Adds some space between the content of the div and the border for better visual appeal */
+         margin-top: 10px; /* Optional: Adds some space between divs */
+      }
+      .card div:first-child {
+         border-top: none;
+      }
+      .btn-custom{
+         background-color: #2b7a78;
+         color: #feffff;
+      }
+   </style>
+
+   <nav class="navbar navbar-expand-lg custom-navbar-color">
+      <div class="container-fluid">
+         <h3>Welcome back {{name}}!</h3>
+         <div class="collapse navbar-collapse" id="navbarSupportedContent" style="text-align: right;">
+         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+               <li>
+                  <a class="nav-link disabled" aria-disabled="true" style="color: #faffff;">Class:{{class}}</a>
+               </li>
+               <li class="nav-item">
+                  <a class="nav-link disabled" aria-disabled="true" style="color: #faffff;">Last login session: {{last_login}}</a>
+               </li>
+         </ul>
+         </div>
+         <a class="navbar-brand custom-navbar-color" href="{% url 'main:logout' %}">Logout</a>
+      </button>
+      </div>
+   </nav>
+
+   <h1 style="text-align: center;">Rakha's Inventory Page</h1>
+
+   <h5>Application Name:</h5>
+   <p>{{ application_name }}</p>
+
+
+   {% comment %} Below is how to show the product data {% endcomment %}
+   <div class="cards-container">
+      <div class = "row" id="product_table"></div>
+   </div>
+   <br />
+
+   <a href="{% url 'main:create_product' %}">
+      <button class="btn btn-custom btn-lg">
+         Add New Product
+      </button>
+   </a>
+   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content" style="background-color: #17252a;">
+               <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="exampleModalLabel">Add New Product</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+               </div>
+               <div class="modal-body">
+                  <form id="form" onsubmit="return false;">
+                     {% csrf_token %}
+                     <div class="mb-3">
+                           <label for="name" class="col-form-label" >Name:</label>
+                           <input type="text" class="form-control" id="name" name="name" style="background-color: #faffff;"></input>
+                     </div>
+                     <div class="mb-3">
+                           <label for="price" class="col-form-label">Category:</label>
+                           <input type="text" class="form-control" id="category" name="category" style="background-color: #faffff;"></input>
+                     </div>
+                     <div class="mb-3">
+                           <label for="price" class="col-form-label">Amount:</label>
+                           <input type="number" class="form-control" id="amount" name="amount" style="background-color: #faffff;"></input>
+                     </div>
+                     <div class="mb-3">
+                           <label for="description" class="col-form-label">Description:</label>
+                           <textarea class="form-control" id="description" name="description" style="background-color: #faffff;"></textarea>
+                     </div>
+                  </form>
+               </div>
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-primary" id="button_add" data-bs-dismiss="modal">Add Product</button>
+               </div>
+         </div>
+      </div>
+   </div>
+   <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Add Product by AJAX</button>
+   ```
+2. make a script and add functions 'getProducts','refreshProducts',and 'addProduct'
+   ```
+   <script>
+      async function getProducts() {
+         return fetch("{% url 'main:get_product_json' %}").then((res) => res.json())
+      }
+      async function refreshProducts() {
+         document.getElementById("product_table").innerHTML = ""
+         const products = await getProducts()
+         let htmlString = ``;
+         products.forEach((item) => {
+               let deleteUrl = `/delete/${item.pk}`
+               let editUrl = `/edit-product/${item.pk}`
+               htmlString += `\n<div class="col-md-4 mb-3 text-black">
+                  <div class="card" style="width: 300px;">
+                     <div class="card-body">
+                           <h5 class="card-title">Name</h5>
+                           <p class="card-text">${item.fields.name}</p>
+                     </div>
+                     <div class="card-body">
+                           <h5 class="card-title">Category</h5>
+                           <p class="card-text">${item.fields.category}</p>
+                     </div>
+                     <div class="card-body">
+                           <h5 class="card-title">Amount</h5>
+                           <p class="card-text">${item.fields.amount}</p>
+                     </div>
+                     <div class="card-body">
+                           <h5 class="card-title">Description</h5>
+                           <p class="card-text">${item.fields.description}</p>
+                     </div>
+                     <div class="card-body">
+                     <a href="${editUrl}">
+                           <button class="btn btn-custom btn-sm" type="submit">
+                              Edit
+                           </button>
+                     </a>
+                     <a href="${deleteUrl}">
+                           <button class="btn btn-custom btn-sm" type="submit">
+                              Delete
+                           </button>
+                     </a>
+                  </div>
+                  </div>
+               </div>` 
+         })
+         
+         document.getElementById("product_table").innerHTML = htmlString
+      }
+
+      refreshProducts()
+      function addProduct() {
+         fetch("{% url 'main:add_product_ajax' %}", {
+               method: "POST",
+               body: new FormData(document.querySelector('#form'))
+         }).then(refreshProducts)
+
+         document.getElementById("form").reset()
+         return false
+      }
+      document.getElementById("button_add").onclick = addProduct
+   </script>
+   {% endblock content %}
+   ```
