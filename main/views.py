@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+import json
 
 @login_required(login_url='/login')
 def show_main(request):
@@ -139,7 +140,8 @@ def create_product_flutter(request):
         new_product = Product.objects.create(
             user = request.user,
             name = data["name"],
-            price = int(data["price"]),
+            amount = int(data["amount"]),
+            category = data["category"],
             description = data["description"]
         )
 
