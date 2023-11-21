@@ -1,6 +1,6 @@
 from django.shortcuts import render
 import datetime
-from django.http import HttpResponseRedirect,HttpResponseNotFound
+from django.http import HttpResponseRedirect,HttpResponseNotFound,JsonResponse
 from django.urls import reverse
 from main.forms import ProductForm
 from main.models import Product
