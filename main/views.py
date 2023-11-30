@@ -17,12 +17,14 @@ import json
 @login_required(login_url='/login')
 def show_main(request):
     products = Product.objects.filter(user=request.user)
+    discounted_products = Product.objects.filter(user=request.user,is_discount=True)
 
     context = {
         'application_name': "Pirates Database",
         'name': request.user.username, # Your name
         'class': 'PBP KI', # Your PBP Class
         'products': products,
+        'discount' : discounted_products,
         'last_login': request.COOKIES['last_login'],
     }
 
@@ -115,6 +117,10 @@ def get_product_json(request):
     product_item = Product.objects.filter(user=request.user)
     return HttpResponse(serializers.serialize('json', product_item))
 
+def get_discount_json(request):
+    product_item = Product.objects.filter(user=request.user, is_discount = True)
+    return HttpResponse(serializers.serialize('json', product_item))
+
 @csrf_exempt
 def add_product_ajax(request):
     if request.method == 'POST':
@@ -123,8 +129,9 @@ def add_product_ajax(request):
         amount = request.POST.get("amount")
         description = request.POST.get("description")
         user = request.user
+        is_discount = request.POST.get("is_discount") == "on"
 
-        new_product = Product(name=name,category=category, amount=amount, description=description, user=user)
+        new_product = Product(name=name,category=category, amount=amount, description=description, user=user,is_discount=is_discount)
         new_product.save()
 
         return HttpResponse(b"CREATED", status=201)
